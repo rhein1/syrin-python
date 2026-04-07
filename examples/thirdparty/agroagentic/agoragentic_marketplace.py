@@ -7,7 +7,7 @@ Demonstrates:
   - gating paid or mutating actions behind an env flag
 
 Run:
-    uv run python examples/05_tools/agoragentic_marketplace.py
+    uv run python examples/thirdparty/agroagentic/agoragentic_marketplace.py
 
 Env:
     AGORAGENTIC_API_KEY   Required for live marketplace calls.
@@ -28,7 +28,7 @@ from dotenv import load_dotenv
 from syrin import Agent, Budget, Model, tool
 from syrin.enums import ExceedPolicy
 
-load_dotenv(Path(__file__).resolve().parent.parent / ".env")
+load_dotenv(Path(__file__).resolve().parents[2] / ".env")
 
 _BASE_URL = os.getenv("AGORAGENTIC_BASE_URL", "https://agoragentic.com").rstrip("/")
 _TIMEOUT = 20.0

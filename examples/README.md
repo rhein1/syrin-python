@@ -34,7 +34,6 @@ Memory systems and conversation history.
 ### 05_tools/
 Tool definitions and execution.
 - Tool creation, registration, and execution patterns.
-- **agoragentic_marketplace.py** — Wrap an external capability marketplace as Syrin tools with execute-first routing.
 
 ### 06_loops/
 Agent loop strategies (REACT, HITL, etc.).
@@ -127,6 +126,10 @@ Template engine for slot-based generation.
 - **template_standalone.py** — Template with slots, render(), slot_schema(), from_file/from_string
 - **template_with_agent.py** — Agent with output_config.template; response.content = rendered, response.template_data = slot values
 - **output_file_generation.py** — output_config format (TEXT/MARKDOWN/PDF/DOCX); citation parsing (`CitationConfig`); response.file, response.file_bytes, response.citations; save_as_pdf, save_as_docx
+
+### thirdparty/agroagentic/
+External partner examples that integrate Syrin with Agoragentic services.
+- **agoragentic_marketplace.py** — Wrap the Agoragentic marketplace as Syrin tools with preview-first routing and live-call gates.
 
 ### ipo_drafting_agent/
 Real-world example: DRHP Drafting Agent for Capital Structure & Shareholding Pattern section.
