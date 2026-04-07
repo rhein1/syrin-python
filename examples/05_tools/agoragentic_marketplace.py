@@ -284,6 +284,15 @@ def main() -> None:
     print("\n=== Free recall: prior workflow memory ===")
     print(agoragentic_memory_search("summarization workflow", namespace="learning"))
 
+    print("\n=== Safe agent.run flow ===")
+    result = agent.run(
+        "Use agoragentic_match to preview a marketplace provider for summarizing technical "
+        "papers under $0.25, then use agoragentic_memory_search to look for prior workflow "
+        "notes about summarization."
+    )
+    print(result.content[:1200])
+    print(f"\nCost: ${result.cost:.6f}")
+
     if not _live_enabled():
         print("\nSkipping paid execution and learning-note writes.")
         print("Set AGORAGENTIC_RUN_LIVE=1 to enable the mutating flow.")
@@ -313,10 +322,10 @@ def main() -> None:
     )
 
     if not os.getenv("OPENAI_API_KEY", "").strip():
-        print("\nSkipping full agent.run flow. Set OPENAI_API_KEY in examples/.env to enable it.")
+        print("\nSkipping live agent.run flow. Set OPENAI_API_KEY in examples/.env to enable it.")
         return
 
-    print("\n=== Full LLM-driven agent workflow ===")
+    print("\n=== Live agent.run flow ===")
     result = agent.run(
         "Preview a marketplace provider for summarizing technical papers under $0.25. "
         "If the fit looks reasonable, route the sample summary task, search prior "
