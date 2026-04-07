@@ -102,8 +102,9 @@ def _request(
         data = {"message": response.text[:500] or f"HTTP {response.status_code}"}
 
     if response.status_code >= 400:
+        error_code = data.get("error") if isinstance(data, dict) else None
         return {
-            "error": data.get("error") if isinstance(data, dict) else f"http_{response.status_code}",
+            "error": error_code or f"http_{response.status_code}",
             "message": data.get("message") if isinstance(data, dict) else str(data),
             "status_code": response.status_code,
         }
@@ -207,7 +208,7 @@ def agoragentic_memory_search(query: str, namespace: str = "default", limit: int
     Args:
         query: Natural-language search query for prior memory entries.
         namespace: Memory namespace bucket to search.
-        limit: Maximum number of hits to return.
+        limit: Maximum number of hits to return. Values are clamped to 1..50.
 
     Returns:
         JSON object with the top memory hits for the authenticated agent.
@@ -216,10 +217,16 @@ def agoragentic_memory_search(query: str, namespace: str = "default", limit: int
     if missing:
         return _format(missing)
 
+    try:
+        safe_limit = int(limit)
+    except (TypeError, ValueError):
+        safe_limit = 5
+    safe_limit = max(1, min(safe_limit, 50))
+
     data = _request(
         "GET",
         "/api/vault/memory/search",
-        params={"query": query, "namespace": namespace, "limit": limit},
+        params={"query": query, "namespace": namespace, "limit": safe_limit},
     )
     return _format(data)
 
