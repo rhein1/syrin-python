@@ -28,10 +28,15 @@ from dotenv import load_dotenv
 from syrin import Agent, Budget, Model, tool
 from syrin.enums import ExceedPolicy
 
-load_dotenv(Path(__file__).resolve().parents[2] / ".env")
-
-_BASE_URL = os.getenv("AGORAGENTIC_BASE_URL", "https://agoragentic.com").rstrip("/")
+_DEFAULT_BASE_URL = "https://agoragentic.com"
+_DEFAULT_MAX_COST = 0.25
+_MAX_COST_HARD_CAP = 1.0
 _TIMEOUT = 20.0
+
+
+def _base_url() -> str:
+    """Read the marketplace base URL from the current environment."""
+    return os.getenv("AGORAGENTIC_BASE_URL", _DEFAULT_BASE_URL).rstrip("/")
 
 
 def _headers() -> dict[str, str]:
@@ -73,6 +78,15 @@ def _live_guard(action: str) -> dict[str, Any]:
     }
 
 
+def _safe_max_cost(value: Any) -> float:
+    """Coerce max_cost to a bounded float suitable for example marketplace calls."""
+    try:
+        parsed = float(value)
+    except (TypeError, ValueError):
+        parsed = _DEFAULT_MAX_COST
+    return max(0.0, min(parsed, _MAX_COST_HARD_CAP))
+
+
 def _request(
     method: str,
     path: str,
@@ -84,7 +98,7 @@ def _request(
     try:
         response = requests.request(
             method,
-            f"{_BASE_URL}{path}",
+            f"{_base_url()}{path}",
             params=params,
             json=payload,
             headers=_headers(),
@@ -118,7 +132,7 @@ def agoragentic_match(task: str, max_cost: float = 0.25) -> str:
 
     Args:
         task: Plain-English task description for the router.
-        max_cost: Maximum allowed listing price in USDC.
+        max_cost: Maximum allowed listing price in USDC. Values are clamped to 0.0..1.0.
 
     Returns:
         JSON object with the top marketplace providers and filter explanations.
@@ -127,23 +141,30 @@ def agoragentic_match(task: str, max_cost: float = 0.25) -> str:
     if missing:
         return _format(missing)
 
+    safe_max_cost = _safe_max_cost(max_cost)
     data = _request(
         "GET",
         "/api/execute/match",
-        params={"task": task, "max_cost": max_cost},
+        params={"task": task, "max_cost": safe_max_cost},
     )
     if data.get("error"):
         return _format(data)
 
+    raw_providers = data.get("providers")
+    provider_items = raw_providers if isinstance(raw_providers, list) else []
     providers = []
-    for provider in data.get("providers", [])[:5]:
+    for provider in provider_items[:5]:
+        if not isinstance(provider, dict):
+            continue
+        score = provider.get("score")
+        score_data = score if isinstance(score, dict) else {}
         providers.append(
             {
                 "name": provider.get("name"),
                 "capability": provider.get("capability_name"),
                 "price_usdc": provider.get("price"),
                 "eligible": provider.get("eligible"),
-                "score": (provider.get("score") or {}).get("composite"),
+                "score": score_data.get("composite"),
             }
         )
 
@@ -165,7 +186,7 @@ def agoragentic_execute(task: str, input_text: str = "", max_cost: float = 0.25)
     Args:
         task: Plain-English task description for the router.
         input_text: Optional input text passed to the selected provider.
-        max_cost: Maximum allowed listing price in USDC.
+        max_cost: Maximum allowed listing price in USDC. Values are clamped to 0.0..1.0.
 
     Returns:
         JSON object with the routed provider, output, cost, and invocation ID.
@@ -176,13 +197,14 @@ def agoragentic_execute(task: str, input_text: str = "", max_cost: float = 0.25)
     if not _live_enabled():
         return _format(_live_guard("paid marketplace execution"))
 
+    safe_max_cost = _safe_max_cost(max_cost)
     data = _request(
         "POST",
         "/api/execute",
         payload={
             "task": task,
             "input": {"text": input_text} if input_text else {},
-            "constraints": {"max_cost": max_cost},
+            "constraints": {"max_cost": safe_max_cost},
         },
     )
     if data.get("error"):
@@ -285,6 +307,7 @@ def _build_agent() -> Agent:
 
 def main() -> None:
     """Run the example in safe mode by default, with live actions gated by env vars."""
+    load_dotenv(Path(__file__).resolve().parents[2] / ".env")
     agent = _build_agent()
     print("Agent tools:", [tool_spec.name for tool_spec in agent.tools])
 
