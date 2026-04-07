@@ -35,6 +35,7 @@ _TIMEOUT = 20.0
 
 
 def _headers() -> dict[str, str]:
+    """Build marketplace request headers, including auth when configured."""
     headers = {"Content-Type": "application/json"}
     api_key = os.getenv("AGORAGENTIC_API_KEY", "").strip()
     if api_key:
@@ -43,10 +44,12 @@ def _headers() -> dict[str, str]:
 
 
 def _format(payload: dict[str, Any]) -> str:
+    """Pretty-print tool payloads for readable CLI output."""
     return json.dumps(payload, indent=2, sort_keys=True)
 
 
 def _require_marketplace_key() -> dict[str, Any] | None:
+    """Return a standardized skip payload when the marketplace key is missing."""
     if os.getenv("AGORAGENTIC_API_KEY", "").strip():
         return None
     return {
@@ -57,10 +60,12 @@ def _require_marketplace_key() -> dict[str, Any] | None:
 
 
 def _live_enabled() -> bool:
+    """Report whether paid or mutating marketplace calls are enabled."""
     return os.getenv("AGORAGENTIC_RUN_LIVE", "").strip() == "1"
 
 
 def _live_guard(action: str) -> dict[str, Any]:
+    """Return a standardized skip payload for live-only actions."""
     return {
         "status": "skipped",
         "error": "live_calls_disabled",
@@ -75,6 +80,7 @@ def _request(
     params: dict[str, Any] | None = None,
     payload: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    """Execute one marketplace request and normalize success and error payloads."""
     try:
         response = requests.request(
             method,
@@ -84,7 +90,7 @@ def _request(
             headers=_headers(),
             timeout=_TIMEOUT,
         )
-    except Exception as exc:
+    except requests.RequestException as exc:
         return {
             "error": "request_failed",
             "message": str(exc),
@@ -244,6 +250,7 @@ def agoragentic_save_learning_note(title: str, lesson: str) -> str:
 
 
 def _build_agent() -> Agent:
+    """Create the example agent with marketplace-aware prompting and tools."""
     openai_key = os.getenv("OPENAI_API_KEY", "").strip()
     model = (
         Model.OpenAI("gpt-4o-mini", api_key=openai_key)
@@ -270,8 +277,9 @@ def _build_agent() -> Agent:
 
 
 def main() -> None:
+    """Run the example in safe mode by default, with live actions gated by env vars."""
     agent = _build_agent()
-    print("Agent tools:", [tool_spec.name for tool_spec in agent._tools])
+    print("Agent tools:", [tool_spec.name for tool_spec in agent.tools])
 
     missing = _require_marketplace_key()
     if missing:
