@@ -34,6 +34,7 @@ Memory systems and conversation history.
 ### 05_tools/
 Tool definitions and execution.
 - Tool creation, registration, and execution patterns.
+- **agoragentic_marketplace.py** — Wrap an external capability marketplace as Syrin tools with execute-first routing.
 
 ### 06_loops/
 Agent loop strategies (REACT, HITL, etc.).
