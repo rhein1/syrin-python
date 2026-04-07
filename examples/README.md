@@ -97,6 +97,7 @@ Advanced patterns: dependency injection, circuit breaker, agent inheritance.
 
 ### 16_serving/
 HTTP serving and playground UI.
+- **agoragentic_marketplace_serve.py** — Serve an Agoragentic-backed agent with preview-first routing and live-call gates.
 - **playground_dynamic_pipeline.py** — Serve multi-agent pipelines.
 - See `16_serving/README.md` for details.
 

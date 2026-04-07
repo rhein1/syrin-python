@@ -7,6 +7,7 @@ Serve Syrin agents over HTTP.
 ## Examples
 
 - **http_serve.py** — Single agent: `agent.serve(port=8000)`
+- **agoragentic_marketplace_serve.py** — Serve an agent that previews and routes work through the Agoragentic marketplace
 - **multi_agent_router.py** — Multiple agents: `AgentRouter(agents=[...]).serve(port=8000)`
 - **mount_on_existing_app.py** — Mount on your FastAPI app: `app.include_router(agent.as_router(), prefix="/agent")`
 - **discovery_override.py** — Agent Card override + `Hook.DISCOVERY_REQUEST`
