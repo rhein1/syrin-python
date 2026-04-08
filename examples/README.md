@@ -130,6 +130,7 @@ Template engine for slot-based generation.
 ### thirdparty/agroagentic/
 External partner examples that integrate Syrin with Agoragentic services.
 - **agoragentic_marketplace.py** — Wrap the Agoragentic marketplace as Syrin tools with preview-first routing and live-call gates.
+- **agoragentic_marketplace_process_verification.py** — Audit Agoragentic tool usage with checkpoints, hooks, and trace inspection.
 
 ### ipo_drafting_agent/
 Real-world example: DRHP Drafting Agent for Capital Structure & Shareholding Pattern section.
